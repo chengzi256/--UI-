@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>河北地质大学图书馆座位预约系统 - UI原型</title>
+<style>
+/* ========== 全局重置 ========== */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#333;overflow-x:hidden}
+
+/* ========== 入口选择页 ========== */
+#entry-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0d9488 0%,#0891b2 50%,#0284c7 100%);padding:40px 20px}
+#entry-page h1{color:#fff;font-size:32px;margin-bottom:8px;text-align:center}
+#entry-page .subtitle{color:rgba(255,255,255,.85);font-size:15px;margin-bottom:50px;text-align:center}
+.entry-cards{display:flex;gap:32px;flex-wrap:wrap;justify-content:center}
+.entry-card{width:280px;background:#fff;border-radius:16px;padding:36px 28px;cursor:pointer;transition:all .3s;box-shadow:0 8px 30px rgba(0,0,0,.15);text-align:center}
+.entry-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.2)}
+.entry-card .icon{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px}
+.entry-card.student .icon{background:linear-gradient(135deg,#d1fae5,#a7f3d0)}
+.entry-card.admin .icon{background:linear-gradient(135deg,#dbeafe,#bfdbfe)}
+.entry-card h2{font-size:20px;margin-bottom:8px;color:#1f2937}
+.entry-card p{font-size:13px;color:#6b7280;line-height:1.6}
+.entry-card .enter-btn{margin-top:20px;padding:10px 28px;border-radius:24px;color:#fff;font-size:14px;font-weight:500;display:inline-block}
+.entry-card.student .enter-btn{background:#059669}
+.entry-card.admin .enter-btn{background:#2563eb}
+.entry-info{margin-top:40px;color:rgba(255,255,255,.7);font-size:12px;text-align:center;line-height:1.8}
+
+/* ========== 学生端 - 手机外壳 ========== */
+#student-app{display:none;min-height:100vh;background:linear-gradient(135deg,#e0f2fe,#f0fdfa);padding:20px;align-items:center;justify-content:center}
+.phone-frame{width:390px;height:800px;background:#000;border-radius:44px;padding:12px;box-shadow:0 20px 60px rgba(0,0,0,.3);position:relative;flex-shrink:0}
+.phone-screen{width:100%;height:100%;background:#f5f5f7;border-radius:34px;overflow:hidden;position:relative}
+.phone-notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#000;border-radius:0 0 18px 18px;z-index:100}
+.phone-statusbar{height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 6px;font-size:14px;font-weight:600;color:#000;background:transparent;position:relative;z-index:50}
+.phone-statusbar .right{display:flex;gap:5px;align-items:center}
+
+/* 学生端页面容器 */
+.stu-page{position:absolute;top:44px;left:0;right:0;bottom:0;overflow-y:auto;background:#f5f5f7;display:none;animation:slideIn .25s ease}
+.stu-page.active{display:block}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* 学生端导航栏 */
+.stu-navbar{height:48px;display:flex;align-items:center;justify-content:center;position:relative;background:#fff;border-bottom:1px solid #eee;font-size:17px;font-weight:600;color:#1f2937}
+.stu-navbar .back{position:absolute;left:16px;cursor:pointer;font-size:20px;color:#374151;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.stu-navbar .back:hover{background:#f3f4f6}
+.stu-navbar .right-action{position:absolute;right:16px;font-size:14px;color:#059669;cursor:pointer;font-weight:500}
+
+/* 底部Tab栏 */
+.stu-tabbar{position:absolute;bottom:0;left:0;right:0;height:64px;background:#fff;border-top:1px solid #e5e7eb;display:flex;z-index:50}
+.stu-tabbar .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:#9ca3af;font-size:10px}
+.stu-tabbar .tab-item.active{color:#059669}
+.stu-tabbar .tab-item .tab-icon{font-size:22px}
+
+/* 学生端内容区 */
+.stu-content{padding:12px 16px 80px}
+
+/* ========== 登录页 ========== */
+#stu-login{background:linear-gradient(180deg,#059669 0%,#047857 40%,#f5f5f7 40%)}
+.login-logo{text-align:center;padding:50px 0 30px;color:#fff}
+.login-logo .logo-icon{width:80px;height:80px;background:rgba(255,255,255,.2);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:16px}
+.login-logo h2{font-size:22px;margin-bottom:6px}
+.login-logo p{font-size:13px;opacity:.85}
+.login-card{background:#fff;border-radius:16px;margin:0 20px;padding:28px 24px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.login-card .form-group{margin-bottom:18px}
+.login-card label{display:block;font-size:13px;color:#6b7280;margin-bottom:8px}
+.login-card input{width:100%;height:46px;border:1px solid #e5e7eb;border-radius:10px;padding:0 14px;font-size:15px;outline:none;transition:border .2s}
+.login-card input:focus{border-color:#059669}
+.login-btn{width:100%;height:48px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px}
+.login-btn:active{opacity:.85}
+.login-tips{text-align:center;margin-top:16px;font-size:12px;color:#9ca3af}
+.login-tips a{color:#059669;text-decoration:none}
+
+/* ========== 首页 ========== */
+.home-header{background:linear-gradient(135deg,#059669,#0d9488);padding:16px;border-radius:0 0 20px 20px;color:#fff;margin:-12px -16px 16px}
+.home-header .greeting{font-size:13px;opacity:.9;margin-bottom:4px}
+.home-header .user-name{font-size:20px;font-weight:600;margin-bottom:12px}
+.home-stats{display:flex;gap:12px}
+.home-stat{flex:1;background:rgba(255,255,255,.15);border-radius:10px;padding:10px;text-align:center}
+.home-stat .num{font-size:20px;font-weight:700}
+.home-stat .label{font-size:11px;opacity:.85;margin-top:2px}
+
+/* 筛选区 */
+.filter-section{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px}
+.filter-row{display:flex;gap:10px;margin-bottom:10px}
+.filter-row:last-child{margin-bottom:0}
+.filter-select{flex:1;height:38px;border:1px solid #e5e7eb;border-radius:8px;padding:0 10px;font-size:13px;background:#fff;outline:none;color:#374151}
+.time-picker{display:flex;align-items:center;gap:8px;font-size:13px;color:#374151}
+.time-picker input{width:80px;height:34px;border:1px solid #e5e7eb;border-radius:8px;text-align:center;font-size:13px;outline:none}
+
+/* 座位图例 */
+.seat-legend{display:flex;gap:14px;margin-bottom:12px;font-size:11px;color:#6b7280;flex-wrap:wrap}
+.seat-legend .item{display:flex;align-items:center;gap:4px}
+.legend-dot{width:12px;height:12px;border-radius:3px}
+
+/* 座位平面图 */
+.seat-map{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px}
+.seat-map-title{font-size:14px;font-weight:600;color:#1f2937;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.seat-map-title .area-tag{font-size:11px;color:#059669;background:#d1fae5;padding:3px 10px;border-radius:10px;font-weight:500}
+.seat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.seat{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;position:relative}
+.seat.free{background:#d1fae5;color:#065f46;border:1.5px solid #6ee7b7}
+.seat.free:hover{background:#a7f3d0;transform:scale(1.08)}
+.seat.reserved{background:#fef3c7;color:#92400e;border:1.5px solid #fcd34d;cursor:not-allowed}
+.seat.using{background:#dbeafe;color:#1e40af;border:1.5px solid #93c5fd;cursor:not-allowed}
+.seat.maintain{background:#f3f4f6;color:#9ca3af;border:1.5px solid #d1d5db;cursor:not-allowed}
+.seat.selected{background:#059669;color:#fff;border:1.5px solid #047857;transform:scale(1.1);box-shadow:0 4px 12px rgba(5,150,105,.4)}
+.seat-row-label{font-size:10px;color:#9ca3af;text-align:center;padding:4px 0}
+
+/* 预约底部按钮 */
+.reserve-bar{position:absolute;bottom:64px;left:0;right:0;background:#fff;padding:12px 16px;border-top:1px solid #e5e7eb;display:none;z-index:40}
+.reserve-bar.show{display:flex;align-items:center;justify-content:space-between}
+.reserve-bar .seat-info{font-size:13px;color:#374151}
+.reserve-bar .seat-info strong{color:#059669;font-size:15px}
+.reserve-bar button{background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;padding:10px 28px;border-radius:22px;font-size:14px;font-weight:600;cursor:pointer}
+
+/* ========== 预约确认页 ========== */
+.confirm-card{background:#fff;border-radius:12px;padding:18px;margin-bottom:12px}
+.confirm-card h3{font-size:15px;font-weight:600;color:#1f2937;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f3f4f6}
+.confirm-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:14px}
+.confirm-row .label{color:#6b7280}
+.confirm-row .value{color:#1f2937;font-weight:500}
+.confirm-row .value.highlight{color:#059669;font-weight:600}
+.confirm-notice{background:#fef3c7;border-radius:8px;padding:12px;font-size:12px;color:#92400e;line-height:1.6;margin-bottom:12px}
+.confirm-notice strong{color:#78350f}
+.confirm-bottom{position:absolute;bottom:0;left:0;right:0;background:#fff;padding:14px 16px;border-top:1px solid #e5e7eb}
+.confirm-bottom button{width:100%;height:46px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer}
+
+/* ========== 我的预约页 ========== */
+.reserve-tabs{display:flex;background:#fff;border-radius:10px;padding:4px;margin-bottom:12px}
+.reserve-tabs .tab{flex:1;text-align:center;padding:8px;font-size:13px;color:#6b7280;border-radius:8px;cursor:pointer;font-weight:500}
+.reserve-tabs .tab.active{background:#059669;color:#fff}
+.reserve-card{background:#fff;border-radius:12px;padding:16px;margin-bottom:10px}
+.reserve-card .rc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.reserve-card .rc-seat{font-size:16px;font-weight:600;color:#1f2937}
+.reserve-card .rc-status{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:500}
+.rc-status.waiting{background:#fef3c7;color:#92400e}
+.rc-status.using{background:#dbeafe;color:#1e40af}
+.rc-status.done{background:#f3f4f6;color:#6b7280}
+.rc-status.cancel{background:#fee2e2;color:#991b1b}
+.rc-status.violation{background:#fee2e2;color:#991b1b}
+.reserve-card .rc-info{font-size:13px;color:#6b7280;line-height:1.8;margin-bottom:12px}
+.reserve-card .rc-actions{display:flex;gap:8px}
+.rc-btn{flex:1;height:36px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none}
+.rc-btn.primary{background:#059669;color:#fff}
+.rc-btn.warn{background:#f59e0b;color:#fff}
+.rc-btn.danger{background:#ef4444;color:#fff}
+.rc-btn.outline{background:#fff;color:#6b7280;border:1px solid #d1d5db}
+.empty-state{text-align:center;padding:60px 20px;color:#9ca3af}
+.empty-state .icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.empty-state p{font-size:14px}
+
+/* ========== 签到成功弹窗 ========== */
+.modal-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:28px 24px;width:280px;text-align:center;animation:modalIn .3s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.modal-box .modal-icon{width:64px;height:64px;border-radius:50%;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px}
+.modal-box h3{font-size:18px;color:#1f2937;margin-bottom:8px}
+.modal-box p{font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:20px}
+.modal-box button{width:100%;height:42px;background:#059669;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+
+/* ========== 违约记录页 ========== */
+.violation-summary{background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:12px;padding:18px;margin-bottom:12px}
+.violation-summary .vs-title{font-size:13px;color:#92400e;margin-bottom:8px}
+.violation-summary .vs-num{font-size:32px;font-weight:700;color:#78350f}
+.violation-summary .vs-desc{font-size:12px;color:#92400e;margin-top:6px;opacity:.8}
+.violation-card{background:#fff;border-radius:12px;padding:16px;margin-bottom:10px}
+.violation-card .vc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.violation-card .vc-type{font-size:14px;font-weight:600;color:#1f2937}
+.violation-card .vc-date{font-size:12px;color:#9ca3af}
+.violation-card .vc-detail{font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:10px}
+.violation-card .vc-actions{display:flex;gap:8px}
+
+/* ========== 举报页 ========== */
+.report-form{background:#fff;border-radius:12px;padding:18px;margin-bottom:12px}
+.report-form .form-item{margin-bottom:16px}
+.report-form .form-item label{display:block;font-size:13px;color:#374151;margin-bottom:8px;font-weight:500}
+.report-form .form-item input,.report-form .form-item select,.report-form .form-item textarea{width:100%;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;font-family:inherit}
+.report-form .form-item textarea{height:100px;resize:none}
+.report-form .form-item input:focus,.report-form .form-item select:focus,.report-form .form-item textarea:focus{border-color:#059669}
+.upload-area{border:2px dashed #d1d5db;border-radius:10px;padding:24px;text-align:center;cursor:pointer;color:#9ca3af;font-size:13px}
+.upload-area:hover{border-color:#059669;color:#059669}
+
+/* ========== 个人中心 ========== */
+.profile-header{background:linear-gradient(135deg,#059669,#0d9488);padding:24px 16px 40px;border-radius:0 0 20px 20px;color:#fff;margin:-12px -16px 16px;display:flex;align-items:center;gap:14px}
+.profile-avatar{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:28px}
+.profile-info .name{font-size:18px;font-weight:600;margin-bottom:4px}
+.profile-info .id{font-size:12px;opacity:.85}
+.profile-menu{background:#fff;border-radius:12px;overflow:hidden;margin-bottom:12px}
+.profile-menu .menu-item{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f3f4f6;cursor:pointer;font-size:14px;color:#374151}
+.profile-menu .menu-item:last-child{border-bottom:none}
+.profile-menu .menu-item .m-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-right:12px;font-size:15px}
+.profile-menu .menu-item .m-arrow{margin-left:auto;color:#d1d5db;font-size:16px}
+.profile-menu .menu-item .m-badge{margin-left:auto;background:#ef4444;color:#fff;font-size:10px;padding:2px 7px;border-radius:10px}
+
+/* ========== 管理员端 ========== */
+#admin-app{display:none;min-height:100vh;background:#f0f2f5}
+.admin-layout{display:flex;min-height:100vh}
+
+/* 侧边栏 */
+.admin-sidebar{width:220px;background:#001529;color:rgba(255,255,255,.65);flex-shrink:0;display:flex;flex-direction:column}
+.admin-logo{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.admin-logo .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#1890ff,#36cfc9);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.admin-logo .logo-text{color:#fff;font-size:15px;font-weight:600;line-height:1.3}
+.admin-logo .logo-text small{display:block;font-size:10px;font-weight:400;opacity:.6}
+.admin-menu{flex:1;padding:12px 0;overflow-y:auto}
+.admin-menu .menu-group{padding:8px 16px;font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+.admin-menu .menu-item{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;font-size:13px;transition:all .2s;border-left:3px solid transparent}
+.admin-menu .menu-item:hover{color:#fff;background:rgba(255,255,255,.05)}
+.admin-menu .menu-item.active{color:#fff;background:#1890ff;border-left-color:#36cfc9}
+.admin-menu .menu-item .m-icon{font-size:16px;width:20px;text-align:center}
+.admin-sidebar .admin-user{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;font-size:12px}
+.admin-sidebar .admin-user .avatar{width:32px;height:32px;border-radius:50%;background:#1890ff;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff}
+
+/* 主内容区 */
+.admin-main{flex:1;display:flex;flex-direction:column;min-width:0}
+.admin-header{height:56px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
+.admin-header .page-title{font-size:16px;font-weight:600;color:#1f2937}
+.admin-header .header-right{display:flex;align-items:center;gap:16px}
+.admin-header .header-icon{font-size:18px;cursor:pointer;color:#6b7280;position:relative}
+.admin-header .header-icon .badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.admin-header .back-entry{font-size:13px;color:#1890ff;cursor:pointer;text-decoration:none}
+
+.admin-content{flex:1;padding:20px;overflow-y:auto}
+.admin-page{display:none}
+.admin-page.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* 统计卡片 */
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.stat-card .sc-label{font-size:13px;color:#8c8c8c;margin-bottom:8px}
+.stat-card .sc-value{font-size:28px;font-weight:700;color:#1f2937}
+.stat-card .sc-trend{font-size:12px;margin-top:6px}
+.stat-card .sc-trend.up{color:#52c41a}
+.stat-card .sc-trend.down{color:#ff4d4f}
+.stat-card .sc-icon{float:right;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-4px}
+
+/* 面板 */
+.admin-panel{background:#fff;border-radius:10px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.admin-panel .panel-title{font-size:15px;font-weight:600;color:#1f2937;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.admin-panel .panel-title .panel-actions{display:flex;gap:8px}
+
+/* 按钮 */
+.btn{padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer;border:none;font-weight:500;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:#1890ff;color:#fff}
+.btn-primary:hover{background:#40a9ff}
+.btn-success{background:#52c41a;color:#fff}
+.btn-warning{background:#faad14;color:#fff}
+.btn-danger{background:#ff4d4f;color:#fff}
+.btn-default{background:#fff;color:#595959;border:1px solid #d9d9d9}
+.btn-default:hover{border-color:#1890ff;color:#1890ff}
+.btn-sm{padding:4px 10px;font-size:12px}
+
+/* 表格 */
+.admin-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-table th{background:#fafafa;padding:12px;text-align:left;font-weight:600;color:#595959;border-bottom:1px solid #f0f0f0;white-space:nowrap}
+.admin-table td{padding:12px;border-bottom:1px solid #f0f0f0;color:#333}
+.admin-table tr:hover td{background:#fafafa}
+.status-tag{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:500}
+.status-tag.green{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.status-tag.blue{background:#e6f7ff;color:#1890ff;border:1px solid #91d5ff}
+.status-tag.orange{background:#fff7e6;color:#faad14;border:1px solid #ffd591}
+.status-tag.red{background:#fff1f0;color:#ff4d4f;border:1px solid #ffa39e}
+.status-tag.gray{background:#fafafa;color:#8c8c8c;border:1px solid #d9d9d9}
+
+/* 筛选栏 */
+.filter-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.filter-bar input,.filter-bar select{height:34px;border:1px solid #d9d9d9;border-radius:6px;padding:0 10px;font-size:13px;outline:none}
+.filter-bar input:focus,.filter-bar select:focus{border-color:#1890ff}
+.filter-bar .filter-label{font-size:13px;color:#595959}
+
+/* 座位管理 */
+.floor-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.floor-tab{padding:8px 18px;border-radius:6px;background:#fff;border:1px solid #d9d9d9;cursor:pointer;font-size:13px;color:#595959}
+.floor-tab.active{background:#1890ff;color:#fff;border-color:#1890ff}
+.seat-admin-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.seat-admin-cell{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;cursor:pointer;transition:all .15s}
+.seat-admin-cell:hover{transform:scale(1.1);z-index:2}
+.seat-admin-cell.free{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.seat-admin-cell.using{background:#e6f7ff;color:#1890ff;border:1px solid #91d5ff}
+.seat-admin-cell.reserved{background:#fff7e6;color:#faad14;border:1px solid #ffd591}
+.seat-admin-cell.maintain{background:#fafafa;color:#bfbfbf;border:1px solid #d9d9d9}
+
+/* 图表占位 */
+.chart-placeholder{height:280px;background:linear-gradient(180deg,#fafafa,#fff);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#bfbfbf;font-size:13px;position:relative;overflow:hidden}
+.chart-bars{display:flex;align-items:flex-end;gap:12px;height:180px;padding:0 20px}
+.chart-bar{width:36px;background:linear-gradient(180deg,#1890ff,#36cfc9);border-radius:4px 4px 0 0;position:relative;transition:all .3s}
+.chart-bar:hover{opacity:.8}
+.chart-bar .bar-val{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:11px;color:#595959;font-weight:600}
+.chart-bar .bar-label{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:11px;color:#8c8c8c;white-space:nowrap}
+
+/* 表单 */
+.admin-form .form-row{display:flex;gap:16px;margin-bottom:16px}
+.admin-form .form-item{flex:1}
+.admin-form .form-item label{display:block;font-size:13px;color:#595959;margin-bottom:6px}
+.admin-form .form-item input,.admin-form .form-item select,.admin-form .form-item textarea{width:100%;height:36px;border:1px solid #d9d9d9;border-radius:6px;padding:0 10px;font-size:13px;outline:none}
+.admin-form .form-item textarea{height:80px;padding:8px 10px;resize:none}
+.admin-form .form-item input:focus,.admin-form .form-item select:focus{border-color:#1890ff}
+
+/* 公告列表 */
+.notice-item{padding:14px 0;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:flex-start}
+.notice-item:last-child{border-bottom:none}
+.notice-item .notice-content{flex:1}
+.notice-item .notice-title{font-size:14px;font-weight:500;color:#1f2937;margin-bottom:4px}
+.notice-item .notice-meta{font-size:12px;color:#8c8c8c}
+.notice-item .notice-actions{display:flex;gap:8px;margin-left:16px}
+
+/* 举报详情 */
+.report-detail{display:flex;gap:16px}
+.report-detail .rd-left{flex:1}
+.report-detail .rd-right{width:200px;flex-shrink:0}
+.evidence-img{width:100%;height:120px;background:linear-gradient(135deg,#f0f0f0,#e0e0e0);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#bfbfbf;font-size:12px;margin-bottom:8px}
+
+/* 管理员登录 */
+#admin-login{display:none;min-height:100vh;background:linear-gradient(135deg,#1a3a5c 0%,#0d1b2a 50%,#1b263b 100%);align-items:center;justify-content:center}
+.admin-login-box{width:400px;background:#fff;border-radius:12px;padding:36px 32px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.admin-login-box .login-header{text-align:center;margin-bottom:28px}
+.admin-login-box .login-header .icon{width:56px;height:56px;background:linear-gradient(135deg,#1890ff,#36cfc9);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px}
+.admin-login-box .login-header h2{font-size:20px;color:#1f2937;margin-bottom:4px}
+.admin-login-box .login-header p{font-size:12px;color:#8c8c8c}
+.admin-login-box .form-group{margin-bottom:18px}
+.admin-login-box .form-group label{display:block;font-size:13px;color:#595959;margin-bottom:6px}
+.admin-login-box .form-group input{width:100%;height:42px;border:1px solid #d9d9d9;border-radius:8px;padding:0 12px;font-size:14px;outline:none}
+.admin-login-box .form-group input:focus{border-color:#1890ff}
+.admin-login-box .login-btn{width:100%;height:44px;background:linear-gradient(135deg,#1890ff,#096dd9);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px}
+
+/* 双栏布局 */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+
+/* 分页 */
+.pagination{display:flex;justify-content:flex-end;gap:6px;margin-top:16px}
+.pagination .page-btn{width:32px;height:32px;border:1px solid #d9d9d9;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:#595959;background:#fff}
+.pagination .page-btn.active{background:#1890ff;color:#fff;border-color:#1890ff}
+
+/* 进度条 */
+.progress-bar{height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden}
+.progress-bar .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#1890ff,#36cfc9)}
+
+/* 返回入口按钮 */
+.back-to-entry{position:fixed;top:16px;right:16px;z-index:9999;background:rgba(0,0,0,.6);color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;cursor:pointer;backdrop-filter:blur(4px)}
+.back-to-entry:hover{background:rgba(0,0,0,.8)}
+
+/* 滚动条美化 */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:3px}
+::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+
+<!-- ==================== 入口选择页 ==================== -->
+<div id="entry-page">
+  <h1>河北地质大学图书馆座位预约系统</h1>
+  <p class="subtitle">UI 高保真原型设计 · 需求分析大作业</p>
+  <div class="entry-cards">
+    <div class="entry-card student" onclick="enterStudent()">
+      <div class="icon">📱</div>
+      <h2>学生端</h2>
+      <p>微信小程序原型<br>座位预约 · 签到 · 暂离 · 违约查询</p>
+      <div class="enter-btn">进入学生端 →</div>
+    </div>
+    <div class="entry-card admin" onclick="enterAdminLogin()">
+      <div class="icon">💻</div>
+      <h2>管理员端</h2>
+      <p>Web 后台管理原型<br>座位管理 · 数据统计 · 违约处理</p>
+      <div class="enter-btn">进入管理后台 →</div>
+    </div>
+  </div>
+  <div class="entry-info">
+    作者：刘明和 · 学号：424141150410<br>
+    包含学生端 8 个页面 + 管理员端 9 个页面，支持页面跳转交互
+  </div>
+</div>
+
+<!-- ==================== 学生端 ==================== -->
+<div id="student-app">
+  <div class="back-to-entry" onclick="backToEntry()">← 返回入口</div>
+  <div class="phone-frame">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <div class="phone-statusbar">
+        <span>9:41</span>
+        <span class="right">📶 📡 🔋</span>
+      </div>
+
+      <!-- 登录页 -->
+      <div class="stu-page" id="stu-login">
+        <div class="login-logo">
+          <div class="logo-icon">📚</div>
+          <h2>图书馆座位预约</h2>
+          <p>河北地质大学 · 校园统一身份认证</p>
+        </div>
+        <div class="login-card">
+          <div class="form-group">
+            <label>学号</label>
+            <input type="text" placeholder="请输入学号" value="424141150410">
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" placeholder="请输入校园账号密码" value="••••••••">
+          </div>
+          <button class="login-btn" onclick="showPage('stu-home')">登 录</button>
+          <div class="login-tips">
+            登录即表示同意 <a>《用户协议》</a> 和 <a>《隐私政策》</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 首页/座位浏览 -->
+      <div class="stu-page" id="stu-home">
+        <div class="stu-navbar">
+          座位预约
+          <span class="right-action" onclick="showPage('stu-profile')">我的</span>
+        </div>
+        <div class="stu-content">
+          <div class="home-header">
+            <div class="greeting">下午好，欢迎回来</div>
+            <div class="user-name">刘明和 同学</div>
+            <div class="home-stats">
+              <div class="home-stat"><div class="num">128</div><div class="label">空闲座位</div></div>
+              <div class="home-stat"><div class="num">56</div><div class="label">已预约</div></div>
+              <div class="home-stat"><div class="num">87%</div><div class="label">上座率</div></div>
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <div class="filter-row">
+              <select class="filter-select" onchange="updateSeatMap()">
+                <option>一楼</option><option>二楼</option><option selected>三楼</option><option>四楼</option><option>五楼</option>
+              </select>
+              <select class="filter-select" onchange="updateSeatMap()">
+                <option selected>自习区A</option><option>自习区B</option><option>电源区</option><option>静音区</option><option>研讨区</option>
+              </select>
+            </div>
+            <div class="filter-row">
+              <div class="time-picker">
+                <span>开始</span>
+                <input type="time" value="14:00">
+                <span>至</span>
+                <input type="time" value="18:00">
+              </div>
+            </div>
+          </div>
+
+          <div class="seat-legend">
+            <div class="item"><div class="legend-dot" style="background:#6ee7b7"></div>空闲</div>
+            <div class="item"><div class="legend-dot" style="background:#fcd34d"></div>已预约</div>
+            <div class="item"><div class="legend-dot" style="background:#93c5fd"></div>使用中</div>
+            <div class="item"><div class="legend-dot" style="background:#d1d5db"></div>维修</div>
+          </div>
+
+          <div class="seat-map">
+            <div class="seat-map-title">
+              <span>三楼 · 自习区A</span>
+              <span class="area-tag">共60座 · 空闲32</span>
+            </div>
+            <div class="seat-grid" id="seat-grid">
+              <!-- JS动态生成 -->
+            </div>
+          </div>
+        </div>
+        <div class="reserve-bar" id="reserve-bar">
+          <div class="seat-info">已选座位：<strong id="selected-seat-num">A-023</strong></div>
+          <button onclick="showPage('stu-confirm')">确认预约</button>
+        </div>
+        <div class="stu-tabbar">
+          <div class="tab-item active" onclick="showPage('stu-home')"><div class="tab-icon">🏠</div>首页</div>
+          <div class="tab-item" onclick="showPage('stu-myreserve')"><div class="tab-icon">📋</div>我的预约</div>
+          <div class="tab-item" onclick="showPage('stu-violation')"><div class="tab-icon">⚠️</div>违约记录</div>
+          <div class="tab-item" onclick="showPage('stu-profile')"><div class="tab-icon">👤</div>我的</div>
+        </div>
+      </div>
+
+      <!-- 预约确认页 -->
+      <div class="stu-page" id="stu-confirm">
+        <div class="stu-navbar">
+          <span class="back" onclick="showPage('stu-home')">‹</span>
+          预约确认
+        </div>
+        <div class="stu-content">
+          <div class="confirm-card">
+            <h3>座位信息</h3>
+            <div class="confirm-row"><span class="label">座位编号</span><span class="value highlight" id="confirm-seat">A-023</span></div>
+            <div class="confirm-row"><span class="label">所在位置</span><span class="value">三楼 · 自习区A</span></div>
+            <div class="confirm-row"><span class="label">区域类型</span><span class="value">普通自习区</span></div>
+            <div class="confirm-row"><span class="label">电源插座</span><span class="value">有</span></div>
+          </div>
+          <div class="confirm-card">
+            <h3>预约时间</h3>
+            <div class="confirm-row"><span class="label">预约日期</span><span class="value">2026-10-11（周日）</span></div>
+            <div class="confirm-row"><span class="label">开始时间</span><span class="value">14:00</span></div>
+            <div class="confirm-row"><span class="label">结束时间</span><span class="value">18:00</span></div>
+            <div class="confirm-row"><span class="label">预约时长</span><span class="value">4 小时</span></div>
+          </div>
+          <div class="confirm-notice">
+            <strong>温馨提示：</strong><br>
+            1. 请在预约开始后 <strong>15分钟内</strong> 到馆签到，超时未签到将自动释放座位并记违约一次。<br>
+            2. 同一时间段只能预约一个座位。<br>
+            3. 暂离时长最长 60 分钟，超时未返回将自动释放。
+          </div>
+        </div>
+        <div class="confirm-bottom">
+          <button onclick="showReserveSuccess()">确认预约</button>
+        </div>
+      </div>
+
+      <!-- 我的预约 -->
+      <div class="stu-page" id="stu-myreserve">
+        <div class="stu-navbar">我的预约</div>
+        <div class="stu-content">
+          <div class="reserve-tabs">
+            <div class="tab active" onclick="switchReserveTab(this,'ongoing')">进行中</div>
+            <div class="tab" onclick="switchReserveTab(this,'history')">历史记录</div>
+          </div>
+          <div id="reserve-ongoing">
+            <div class="reserve-card">
+              <div class="rc-header">
+                <span class="rc-seat">A-023 · 三楼自习区A</span>
+                <span class="rc-status waiting">待签到</span>
+              </div>
+              <div class="rc-info">
+                📅 2026-10-11 14:00 - 18:00<br>
+                ⏰ 请在 14:15 前完成签到
+              </div>
+              <div class="rc-actions">
+                <button class="rc-btn primary" onclick="showCheckinModal()">立即签到</button>
+                <button class="rc-btn outline" onclick="showCancelModal()">取消预约</button>
+              </div>
+            </div>
+          </div>
+          <div id="reserve-history" style="display:none">
+            <div class="reserve-card">
+              <div class="rc-header">
+                <span class="rc-seat">B-015 · 二楼电源区</span>
+                <span class="rc-status done">已完成</span>
+              </div>
+              <div class="rc-info">📅 2026-10-10 09:00 - 12:00<br>✅ 已签到 · 学习时长 3小时</div>
+            </div>
+            <div class="reserve-card">
+              <div class="rc-header">
+                <span class="rc-seat">A-008 · 三楼自习区A</span>
+                <span class="rc-status violation">已违约</span>
+              </div>
+              <div class="rc-info">📅 2026-10-09 19:00 - 21:00<br>❌ 超时未签到 · 自动释放</div>
+              <div class="rc-actions">
+                <button class="rc-btn warn" onclick="showPage('stu-violation')">查看详情</button>
+                <button class="rc-btn outline" onclick="showPage('stu-appeal')">申诉</button>
+              </div>
+            </div>
+            <div class="reserve-card">
+              <div class="rc-header">
+                <span class="rc-seat">C-032 · 四楼静音区</span>
+                <span class="rc-status done">已完成</span>
+              </div>
+              <div class="rc-info">📅 2026-10-08 14:00 - 17:30<br>✅ 已签到 · 学习时长 3.5小时</div>
+            </div>
+            <div class="reserve-card">
+              <div class="rc-header">
+                <span class="rc-seat">A-019 · 三楼自习区A</span>
+                <span class="rc-status cancel">已取消</span>
+              </div>
+              <div class="rc-info">📅 2026-10-07 10:00 - 12:00<br>用户主动取消</div>
+            </div>
+          </div>
+        </div>
+        <div class="stu-tabbar">
+          <div class="tab-item" onclick="showPage('stu-home')"><div class="tab-icon">🏠</div>首页</div>
+          <div class="tab-item active" onclick="showPage('stu-myreserve')"><div class="tab-icon">📋</div>我的预约</div>
+          <div class="tab-item" onclick="showPage('stu-violation')"><div class="tab-icon">⚠️</div>违约记录</div>
+          <div class="tab-item" onclick="showPage('stu-profile')"><div class="tab-icon">👤</div>我的</div>
+        </div>
+      </div>
+
+      <!-- 违约记录 -->
+      <div class="stu-page" id="stu-violation">
+        <div class="stu-navbar">
+          <span class="back" onclick="showPage('stu-home')">‹</span>
+          违约记录
+        </div>
+        <div class="stu-content">
+          <div class="violation-summary">
+            <div class="vs-title">本学期累计违约</div>
+            <div class="vs-num">1 <span style="font-size:14px;font-weight:400">次</span></div>
+            <div class="vs-desc">累计 3 次将进入黑名单，暂停预约权限 7 天</div>
+          </div>
+          <div class="violation-card">
+            <div class="vc-header">
+              <span class="vc-type">超时未签到</span>
+              <span class="vc-date">2026-10-09</span>
+            </div>
+            <div class="vc-detail">
+              座位：A-008（三楼自习区A）<br>
+              预约时段：19:00 - 21:00<br>
+              违约原因：超过签到时限（15分钟）未到馆签到，系统自动释放座位
+            </div>
+            <div class="vc-actions">
+              <button class="rc-btn warn" onclick="showPage('stu-appeal')">提交申诉</button>
+            </div>
+          </div>
+          <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">— 仅展示最近30天记录 —</div>
+        </div>
+      </div>
+
+      <!-- 申诉页 -->
+      <div class="stu-page" id="stu-appeal">
+        <div class="stu-navbar">
+          <span class="back" onclick="showPage('stu-violation')">‹</span>
+          违约申诉
+        </div>
+        <div class="stu-content">
+          <div class="report-form">
+            <div class="form-item">
+              <label>申诉违约记录</label>
+              <select>
+                <option>2026-10-09 超时未签到（A-008）</option>
+              </select>
+            </div>
+            <div class="form-item">
+              <label>申诉原因</label>
+              <select>
+                <option>请选择申诉原因</option>
+                <option>系统故障导致签到失败</option>
+                <option>已到馆但座位被他人占用</option>
+                <option>突发疾病/紧急事务</option>
+                <option>其他原因</option>
+              </select>
+            </div>
+            <div class="form-item">
+              <label>详细说明</label>
+              <textarea placeholder="请详细描述申诉理由，不少于20字..."></textarea>
+            </div>
+            <div class="form-item">
+              <label>上传凭证（选填）</label>
+              <div class="upload-area">📷 点击上传图片凭证（最多3张）</div>
+            </div>
+          </div>
+          <div class="confirm-bottom" style="position:relative;margin-top:16px">
+            <button onclick="showAppealSuccess()">提交申诉</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 举报页 -->
+      <div class="stu-page" id="stu-report">
+        <div class="stu-navbar">
+          <span class="back" onclick="showPage('stu-profile')">‹</span>
+          违规举报
+        </div>
+        <div class="stu-content">
+          <div class="report-form">
+            <div class="form-item">
+              <label>被举报座位</label>
+              <input type="text" placeholder="请输入座位编号，如 A-023" value="A-023">
+            </div>
+            <div class="form-item">
+              <label>举报类型</label>
+              <select>
+                <option>请选择举报类型</option>
+                <option>物品占座无人</option>
+                <option>非预约人占用座位</option>
+                <option>大声喧哗影响他人</option>
+                <option>饮食异味</option>
+                <option>其他违规行为</option>
+              </select>
+            </div>
+            <div class="form-item">
+              <label>问题描述</label>
+              <textarea placeholder="请描述具体情况..."></textarea>
+            </div>
+            <div class="form-item">
+              <label>上传照片（选填）</label>
+              <div class="upload-area">📷 点击上传现场照片（最多3张）</div>
+            </div>
+          </div>
+          <div class="confirm-bottom" style="position:relative;margin-top:16px">
+            <button onclick="showReportSuccess()">提交举报</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 个人中心 -->
+      <div class="stu-page" id="stu-profile">
+        <div class="stu-content" style="padding-top:0">
+          <div class="profile-header">
+            <div class="profile-avatar">👨‍🎓</div>
+            <div class="profile-info">
+              <div class="name">刘明和</div>
+              <div class="id">学号：424141150410 · 软件工程</div>
+            </div>
+          </div>
+          <div class="profile-menu">
+            <div class="menu-item" onclick="showPage('stu-myreserve')">
+              <div class="m-icon" style="background:#dbeafe">📋</div>
+              我的预约记录
+              <span class="m-arrow">›</span>
+            </div>
+            <div class="menu-item" onclick="showPage('stu-violation')">
+              <div class="m-icon" style="background:#fef3c7">⚠️</div>
+              违约记录
+              <span class="m-badge">1</span>
+            </div>
+            <div class="menu-item" onclick="showPage('stu-report')">
+              <div class="m-icon" style="background:#fee2e2">🚩</div>
+              违规举报
+              <span class="m-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <div class="m-icon" style="background:#f3e8ff">⭐</div>
+              我的收藏座位
+              <span class="m-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <div class="m-icon" style="background:#e0f2fe">🔔</div>
+              消息通知
+              <span class="m-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <div class="m-icon" style="background:#f0fdf4">📊</div>
+              学习时长统计
+              <span class="m-arrow">›</span>
+            </div>
+          </div>
+          <div class="profile-menu">
+            <div class="menu-item">
+              <div class="m-icon" style="background:#f1f5f9">⚙️</div>
+              设置
+              <span class="m-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <div class="m-icon" style="background:#f1f5f9">❓</div>
+              帮助与反馈
+              <span class="m-arrow">›</span>
+            </div>
+            <div class="menu-item" onclick="showPage('stu-login')">
+              <div class="m-icon" style="background:#fee2e2">🚪</div>
+              退出登录
+              <span class="m-arrow">›</span>
+            </div>
+          </div>
+        </div>
+        <div class="stu-tabbar">
+          <div class="tab-item" onclick="showPage('stu-home')"><div class="tab-icon">🏠</div>首页</div>
+          <div class="tab-item" onclick="showPage('stu-myreserve')"><div class="tab-icon">📋</div>我的预约</div>
+          <div class="tab-item" onclick="showPage('stu-violation')"><div class="tab-icon">⚠️</div>违约记录</div>
+          <div class="tab-item active" onclick="showPage('stu-profile')"><div class="tab-icon">👤</div>我的</div>
+        </div>
+      </div>
+
+      <!-- 签到成功弹窗 -->
+      <div class="modal-overlay" id="checkin-modal">
+        <div class="modal-box">
+          <div class="modal-icon">✅</div>
+          <h3>签到成功</h3>
+          <p>座位 A-023 已签到<br>使用时间：14:00 - 18:00<br>祝您学习愉快！</p>
+          <button onclick="closeModal('checkin-modal')">确定</button>
+        </div>
+      </div>
+
+      <!-- 取消确认弹窗 -->
+      <div class="modal-overlay" id="cancel-modal">
+        <div class="modal-box">
+          <div class="modal-icon" style="background:#fef3c7">⚠️</div>
+          <h3>确认取消预约？</h3>
+          <p>取消后座位将释放给其他同学<br>距离预约开始超过15分钟，取消不计违约</p>
+          <div style="display:flex;gap:10px">
+            <button style="flex:1;background:#f3f4f6;color:#6b7280" onclick="closeModal('cancel-modal')">再想想</button>
+            <button style="flex:1;background:#ef4444" onclick="closeModal('cancel-modal');alert('预约已取消')">确认取消</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 预约成功弹窗 -->
+      <div class="modal-overlay" id="reserve-success-modal">
+        <div class="modal-box">
+          <div class="modal-icon">🎉</div>
+          <h3>预约成功</h3>
+          <p>座位 A-023 预约成功<br>时间：14:00 - 18:00<br>请在 14:15 前到馆签到</p>
+          <button onclick="closeModal('reserve-success-modal');showPage('stu-myreserve')">查看我的预约</button>
+        </div>
+      </div>
+
+      <!-- 申诉成功弹窗 -->
+      <div class="modal-overlay" id="appeal-success-modal">
+        <div class="modal-box">
+          <div class="modal-icon">📨</div>
+          <h3>申诉已提交</h3>
+          <p>您的申诉已提交，管理员将在 1-3 个工作日内审核，请留意消息通知</p>
+          <button onclick="closeModal('appeal-success-modal');showPage('stu-violation')">返回</button>
+        </div>
+      </div>
+
+      <!-- 举报成功弹窗 -->
+      <div class="modal-overlay" id="report-success-modal">
+        <div class="modal-box">
+          <div class="modal-icon" style="background:#dbeafe">📨</div>
+          <h3>举报已提交</h3>
+          <p>感谢您的反馈，管理员将尽快核实处理</p>
+          <button onclick="closeModal('report-success-modal');showPage('stu-profile')">返回</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 管理员登录 ==================== -->
+<div id="admin-login">
+  <div class="back-to-entry" onclick="backToEntry()">← 返回入口</div>
+  <div class="admin-login-box">
+    <div class="login-header">
+      <div class="icon">📚</div>
+      <h2>图书馆座位预约管理系统</h2>
+      <p>河北地质大学 · 管理员后台</p>
+    </div>
+    <div class="form-group">
+      <label>管理员账号</label>
+      <input type="text" placeholder="请输入管理员账号" value="admin_lib">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input type="password" placeholder="请输入密码" value="••••••••">
+    </div>
+    <div class="form-group">
+      <label>验证码</label>
+      <div style="display:flex;gap:10px">
+        <input type="text" placeholder="请输入验证码" style="flex:1" value="A7K9">
+        <div style="width:100px;height:42px;background:linear-gradient(135deg,#e6f7ff,#bae7ff);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#1890ff;letter-spacing:4px;cursor:pointer">A7K9</div>
+      </div>
+    </div>
+    <button class="login-btn" onclick="enterAdmin()">登 录</button>
+  </div>
+</div>
+
+<!-- ==================== 管理员后台 ==================== -->
+<div id="admin-app">
+  <div class="admin-layout">
+    <!-- 侧边栏 -->
+    <div class="admin-sidebar">
+      <div class="admin-logo">
+        <div class="logo-icon">📚</div>
+        <div class="logo-text">座位预约管理<small>河北地质大学图书馆</small></div>
+      </div>
+      <div class="admin-menu">
+        <div class="menu-group">数据概览</div>
+        <div class="menu-item active" onclick="switchAdminPage(this,'admin-dashboard')">
+          <span class="m-icon">📊</span>仪表盘
+        </div>
+        <div class="menu-group">业务管理</div>
+        <div class="menu-item" onclick="switchAdminPage(this,'admin-seat')">
+          <span class="m-icon">💺</span>座位管理
+        </div>
+        <div class="menu-item" onclick="switchAdminPage(this,'admin-reservation')">
+          <span class="m-icon">📋</span>预约记录
+        </div>
+        <div class="menu-item" onclick="switchAdminPage(this,'admin-violation')">
+          <span class="m-icon">⚠️</span>违约管理
+        </div>
+        <div class="menu-item" onclick="switchAdminPage(this,'admin-report')">
+          <span class="m-icon">🚩</span>举报处理
+          <span style="margin-left:auto;background:#ff4d4f;color:#fff;font-size:10px;padding:1px 7px;border-radius:10px">3</span>
+        </div>
+        <div class="menu-group">数据分析</div>
+        <div class="menu-item" onclick="switchAdminPage(this,'admin-statistics')">
+          <span class="m-icon">📈</span>统计报表
+        </div>
+        <div class="menu-group">系统管理</div>
+        <div class="menu-item" onclick="switchAdminPage(this,'admin-notice')">
+          <span class="m-icon">📢</span>公告管理
+        </div>
+        <div class="menu-item" onclick="switchAdminPage(this,'admin-settings')">
+          <span class="m-icon">⚙️</span>系统设置
+        </div>
+      </div>
+      <div class="admin-user">
+        <div class="avatar">管</div>
+        <div>
+          <div style="color:#fff;font-size:13px">图书馆管理员</div>
+          <div style="font-size:10px;opacity:.6">admin@hgu.edu.cn</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="admin-main">
+      <div class="admin-header">
+        <div class="page-title" id="admin-page-title">仪表盘</div>
+        <div class="header-right">
+          <span class="header-icon">🔔<span class="badge">5</span></span>
+          <span class="header-icon">⚙️</span>
+          <a class="back-entry" onclick="backToEntry()">退出登录</a>
+        </div>
+      </div>
+
+      <div class="admin-content">
+        <!-- 仪表盘 -->
+        <div class="admin-page active" id="admin-dashboard">
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="sc-icon" style="background:#e6f7ff">💺</div>
+              <div class="sc-label">座位总数</div>
+              <div class="sc-value">320</div>
+              <div class="sc-trend up">↑ 今日新增 0</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-icon" style="background:#f6ffed">✅</div>
+              <div class="sc-label">今日预约数</div>
+              <div class="sc-value">186</div>
+              <div class="sc-trend up">↑ 较昨日 +12.3%</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-icon" style="background:#fff7e6">⏰</div>
+              <div class="sc-label">当前上座率</div>
+              <div class="sc-value">87.5%</div>
+              <div class="sc-trend up">↑ 较昨日 +5.2%</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-icon" style="background:#fff1f0">⚠️</div>
+              <div class="sc-label">今日违约数</div>
+              <div class="sc-value">7</div>
+              <div class="sc-trend down">↓ 较昨日 -2</div>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="admin-panel">
+              <div class="panel-title">
+                各楼层座位使用率
+                <div class="panel-actions">
+                  <button class="btn btn-default btn-sm">今日</button>
+                  <button class="btn btn-default btn-sm">本周</button>
+                  <button class="btn btn-primary btn-sm">本月</button>
+                </div>
+              </div>
+              <div style="padding:10px 0">
+                <div style="margin-bottom:14px">
+                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>一楼 自习区</span><span style="color:#52c41a;font-weight:600">62%</span></div>
+                  <div class="progress-bar"><div class="fill" style="width:62%"></div></div>
+                </div>
+                <div style="margin-bottom:14px">
+                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>二楼 电源区</span><span style="color:#1890ff;font-weight:600">78%</span></div>
+                  <div class="progress-bar"><div class="fill" style="width:78%"></div></div>
+                </div>
+                <div style="margin-bottom:14px">
+                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>三楼 自习区A</span><span style="color:#faad14;font-weight:600">91%</span></div>
+                  <div class="progress-bar"><div class="fill" style="width:91%;background:linear-gradient(90deg,#faad14,#ffc53d)"></div></div>
+                </div>
+                <div style="margin-bottom:14px">
+                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>四楼 静音区</span><span style="color:#1890ff;font-weight:600">83%</span></div>
+                  <div class="progress-bar"><div class="fill" style="width:83%"></div></div>
+                </div>
+                <div style="margin-bottom:14px">
+                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>五楼 研讨区</span><span style="color:#52c41a;font-weight:600">55%</span></div>
+                  <div class="progress-bar"><div class="fill" style="width:55%"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-panel">
+              <div class="panel-title">今日时段预约趋势</div>
+              <div class="chart-placeholder" style="height:260px">
+                <div class="chart-bars">
+                  <div class="chart-bar" style="height:30%"><span class="bar-val">45</span><span class="bar-label">8时</span></div>
+                  <div class="chart-bar" style="height:55%"><span class="bar-val">82</span><span class="bar-label">10时</span></div>
+                  <div class="chart-bar" style="height:75%"><span class="bar-val">112</span><span class="bar-label">12时</span></div>
+                  <div class="chart-bar" style="height:90%"><span class="bar-val">135</span><span class="bar-label">14时</span></div>
+                  <div class="chart-bar" style="height:95%"><span class="bar-val">142</span><span class="bar-label">16时</span></div>
+                  <div class="chart-bar" style="height:80%"><span class="bar-val">120</span><span class="bar-label">18时</span></div>
+                  <div class="chart-bar" style="height:65%"><span class="bar-val">97</span><span class="bar-label">20时</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-panel">
+            <div class="panel-title">
+              实时座位状态总览
+              <div class="panel-actions">
+                <button class="btn btn-primary btn-sm" onclick="switchAdminPage(null,'admin-seat')">进入座位管理</button>
+              </div>
+            </div>
+            <div class="three-col" style="text-align:center">
+              <div style="padding:16px;background:#f6ffed;border-radius:8px">
+                <div style="font-size:32px;font-weight:700;color:#52c41a">128</div>
+                <div style="font-size:13px;color:#8c8c8c;margin-top:4px">空闲座位</div>
+              </div>
+              <div style="padding:16px;background:#e6f7ff;border-radius:8px">
+                <div style="font-size:32px;font-weight:700;color:#1890ff">142</div>
+                <div style="font-size:13px;color:#8c8c8c;margin-top:4px">使用中</div>
+              </div>
+              <div style="padding:16px;background:#fff7e6;border-radius:8px">
+                <div style="font-size:32px;font-weight:700;color:#faad14">44</div>
+                <div style="font-size:13px;color:#8c8c8c;margin-top:4px">已预约待签到</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 座位管理 -->
+        <div class="admin-page" id="admin-seat">
+          <div class="admin-panel">
+            <div class="panel-title">
+              座位管理
+              <div class="panel-actions">
+                <button class="btn btn-default btn-sm">批量导入</button>
+                <button class="btn btn-primary btn-sm">+ 新增座位</button>
+              </div>
+            </div>
+            <div class="floor-tabs">
+              <div class="floor-tab">一楼</div>
+              <div class="floor-tab">二楼</div>
+              <div class="floor-tab active">三楼</div>
+              <div class="floor-tab">四楼</div>
+              <div class="floor-tab">五楼</div>
+            </div>
+            <div class="seat-legend" style="margin-bottom:14px">
+              <div class="item"><div class="legend-dot" style="background:#b7eb8f"></div>空闲</div>
+              <div class="item"><div class="legend-dot" style="background:#91d5ff"></div>使用中</div>
+              <div class="item"><div class="legend-dot" style="background:#ffd591"></div>已预约</div>
+              <div class="item"><div class="legend-dot" style="background:#d9d9d9"></div>维修/禁用</div>
+            </div>
+            <div class="seat-admin-grid" id="admin-seat-grid">
+              <!-- JS生成 -->
+            </div>
+          </div>
+
+          <div class="admin-panel">
+            <div class="panel-title">座位列表</div>
+            <table class="admin-table">
+              <thead>
+                <tr><th>座位编号</th><th>楼层</th><th>区域</th><th>类型</th><th>状态</th><th>当前使用者</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>A-001</td><td>三楼</td><td>自习区A</td><td>普通座</td><td><span class="status-tag green">空闲</span></td><td>-</td><td><button class="btn btn-default btn-sm">编辑</button> <button class="btn btn-warning btn-sm">设维修</button></td></tr>
+                <tr><td>A-002</td><td>三楼</td><td>自习区A</td><td>普通座</td><td><span class="status-tag blue">使用中</span></td><td>张同学(424141150411)</td><td><button class="btn btn-default btn-sm">编辑</button> <button class="btn btn-danger btn-sm">强制释放</button></td></tr>
+                <tr><td>A-003</td><td>三楼</td><td>自习区A</td><td>电源座</td><td><span class="status-tag orange">已预约</span></td><td>李同学(424141150412)</td><td><button class="btn btn-default btn-sm">编辑</button></td></tr>
+                <tr><td>A-004</td><td>三楼</td><td>自习区A</td><td>普通座</td><td><span class="status-tag gray">维修中</span></td><td>-</td><td><button class="btn btn-default btn-sm">编辑</button> <button class="btn btn-success btn-sm">恢复</button></td></tr>
+                <tr><td>A-005</td><td>三楼</td><td>自习区A</td><td>普通座</td><td><span class="status-tag blue">使用中</span></td><td>王同学(424141150413)</td><td><button class="btn btn-default btn-sm">编辑</button> <button class="btn btn-danger btn-sm">强制释放</button></td></tr>
+                <tr><td>A-006</td><td>三楼</td><td>自习区A</td><td>电源座</td><td><span class="status-tag green">空闲</span></td><td>-</td><td><button class="btn btn-default btn-sm">编辑</button> <button class="btn btn-warning btn-sm">设维修</button></td></tr>
+              </tbody>
+            </table>
+            <div class="pagination">
+              <div class="page-btn">‹</div>
+              <div class="page-btn active">1</div>
+              <div class="page-btn">2</div>
+              <div class="page-btn">3</div>
+              <div class="page-btn">4</div>
+              <div class="page-btn">5</div>
+              <div class="page-btn">›</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 预约记录 -->
+        <div class="admin-page" id="admin-reservation">
+          <div class="admin-panel">
+            <div class="panel-title">预约记录查询</div>
+            <div class="filter-bar">
+              <span class="filter-label">学号：</span>
+              <input type="text" placeholder="请输入学号" style="width:160px">
+              <span class="filter-label">状态：</span>
+              <select>
+                <option>全部</option><option>待签到</option><option>使用中</option><option>已完成</option><option>已取消</option><option>已违约</option>
+              </select>
+              <span class="filter-label">日期：</span>
+              <input type="date" value="2026-10-11">
+              <button class="btn btn-primary btn-sm">查询</button>
+              <button class="btn btn-default btn-sm">重置</button>
+              <button class="btn btn-success btn-sm" style="margin-left:auto">📥 导出Excel</button>
+            </div>
+            <table class="admin-table">
+              <thead>
+                <tr><th>预约编号</th><th>学号</th><th>姓名</th><th>座位</th><th>预约时段</th><th>状态</th><th>签到时间</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>YY20261011001</td><td>424141150410</td><td>刘明和</td><td>A-023</td><td>14:00-18:00</td><td><span class="status-tag orange">待签到</span></td><td>-</td><td><button class="btn btn-default btn-sm">详情</button></td></tr>
+                <tr><td>YY20261011002</td><td>424141150411</td><td>张三</td><td>A-002</td><td>13:00-17:00</td><td><span class="status-tag blue">使用中</span></td><td>13:05</td><td><button class="btn btn-default btn-sm">详情</button></td></tr>
+                <tr><td>YY20261011003</td><td>424141150412</td><td>李四</td><td>A-003</td><td>15:00-18:00</td><td><span class="status-tag orange">待签到</span></td><td>-</td><td><button class="btn btn-default btn-sm">详情</button></td></tr>
+                <tr><td>YY20261011004</td><td>424141150413</td><td>王五</td><td>A-005</td><td>09:00-12:00</td><td><span class="status-tag green">已完成</span></td><td>09:02</td><td><button class="btn btn-default btn-sm">详情</button></td></tr>
+                <tr><td>YY20261011005</td><td>424141150414</td><td>赵六</td><td>B-012</td><td>10:00-12:00</td><td><span class="status-tag red">已违约</span></td><td>未签到</td><td><button class="btn btn-default btn-sm">详情</button></td></tr>
+                <tr><td>YY20261011006</td><td>424141150415</td><td>孙七</td><td>C-008</td><td>14:00-16:00</td><td><span class="status-tag gray">已取消</span></td><td>-</td><td><button class="btn btn-default btn-sm">详情</button></td></tr>
+                <tr><td>YY20261011007</td><td>424141150416</td><td>周八</td><td>A-010</td><td>18:00-21:00</td><td><span class="status-tag blue">使用中</span></td><td>18:01</td><td><button class="btn btn-default btn-sm">详情</button></td></tr>
+              </tbody>
+            </table>
+            <div class="pagination">
+              <div class="page-btn">‹</div>
+              <div class="page-btn active">1</div>
+              <div class="page-btn">2</div>
+              <div class="page-btn">3</div>
+              <div class="page-btn">›</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 违约管理 -->
+        <div class="admin-page" id="admin-violation">
+          <div class="stat-cards" style="grid-template-columns:repeat(3,1fr)">
+            <div class="stat-card">
+              <div class="sc-icon" style="background:#fff1f0">⚠️</div>
+              <div class="sc-label">本月违约总数</div>
+              <div class="sc-value">43</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-icon" style="background:#fff7e6">🚫</div>
+              <div class="sc-label">黑名单人数</div>
+              <div class="sc-value">5</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-icon" style="background:#e6f7ff">📨</div>
+              <div class="sc-label">待处理申诉</div>
+              <div class="sc-value">2</div>
+            </div>
+          </div>
+
+          <div class="admin-panel">
+            <div class="panel-title">
+              违约记录
+              <div class="panel-actions">
+                <button class="btn btn-default btn-sm">全部</button>
+                <button class="btn btn-default btn-sm">超时未签到</button>
+                <button class="btn btn-default btn-sm">暂离超时</button>
+                <button class="btn btn-success btn-sm">📥 导出</button>
+              </div>
+            </div>
+            <table class="admin-table">
+              <thead>
+                <tr><th>违约编号</th><th>学号</th><th>姓名</th><th>座位</th><th>违约类型</th><th>违约时间</th><th>累计次数</th><th>状态</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>WY20261011001</td><td>424141150414</td><td>赵六</td><td>B-012</td><td>超时未签到</td><td>2026-10-11 10:15</td><td>1</td><td><span class="status-tag orange">正常</span></td><td><button class="btn btn-default btn-sm">详情</button></td></tr>
+                <tr><td>WY20261010003</td><td>424141150420</td><td>吴九</td><td>A-015</td><td>暂离超时</td><td>2026-10-10 15:30</td><td>2</td><td><span class="status-tag orange">正常</span></td><td><button class="btn btn-default btn-sm">详情</button></td></tr>
+                <tr><td>WY20261009002</td><td>424141150410</td><td>刘明和</td><td>A-008</td><td>超时未签到</td><td>2026-10-09 19:15</td><td>1</td><td><span class="status-tag blue">申诉中</span></td><td><button class="btn btn-warning btn-sm">处理申诉</button></td></tr>
+                <tr><td>WY20261008005</td><td>424141150430</td><td>郑十</td><td>C-022</td><td>超时未签到</td><td>2026-10-08 14:15</td><td>3</td><td><span class="status-tag red">已黑名单</span></td><td><button class="btn btn-default btn-sm">详情</button> <button class="btn btn-success btn-sm">解除</button></td></tr>
+                <tr><td>WY20261007001</td><td>424141150425</td><td>钱十一</td><td>B-008</td><td>恶意占座</td><td>2026-10-07 16:00</td><td>3</td><td><span class="status-tag red">已黑名单</span></td><td><button class="btn btn-default btn-sm">详情</button> <button class="btn btn-success btn-sm">解除</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 举报处理 -->
+        <div class="admin-page" id="admin-report">
+          <div class="admin-panel">
+            <div class="panel-title">
+              举报处理
+              <div class="panel-actions">
+                <button class="btn btn-default btn-sm">待处理 (3)</button>
+                <button class="btn btn-default btn-sm">处理中</button>
+                <button class="btn btn-default btn-sm">已完成</button>
+              </div>
+            </div>
+            <div class="report-detail" style="border-bottom:1px solid #f0f0f0;padding-bottom:16px;margin-bottom:16px">
+              <div class="rd-left">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                  <span class="status-tag red">待处理</span>
+                  <span style="font-size:14px;font-weight:600">举报编号：JB20261011001</span>
+                  <span style="font-size:12px;color:#8c8c8c">2026-10-11 14:32</span>
+                </div>
+                <table style="width:100%;font-size:13px">
+                  <tr><td style="padding:6px 0;color:#8c8c8c;width:100px">举报人：</td><td>刘明和 (424141150410)</td></tr>
+                  <tr><td style="padding:6px 0;color:#8c8c8c">被举报座位：</td><td>A-023（三楼自习区A）</td></tr>
+                  <tr><td style="padding:6px 0;color:#8c8c8c">举报类型：</td><td>非预约人占用座位</td></tr>
+                  <tr><td style="padding:6px 0;color:#8c8c8c;vertical-align:top">问题描述：</td><td>我预约了A-023座位，到馆后发现被一名未预约的同学占用，对方拒绝离开。</td></tr>
+                </table>
+                <div style="margin-top:14px;display:flex;gap:10px">
+                  <button class="btn btn-success btn-sm">✅ 确认违规，释放座位</button>
+                  <button class="btn btn-warning btn-sm">📞 联系现场处理</button>
+                  <button class="btn btn-default btn-sm">❌ 驳回举报</button>
+                </div>
+              </div>
+              <div class="rd-right">
+                <div style="font-size:13px;color:#8c8c8c;margin-bottom:8px">举报凭证：</div>
+                <div class="evidence-img">📷 现场照片1</div>
+                <div class="evidence-img">📷 现场照片2</div>
+              </div>
+            </div>
+
+            <table class="admin-table">
+              <thead>
+                <tr><th>举报编号</th><th>举报人</th><th>座位</th><th>类型</th><th>提交时间</th><th>状态</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>JB20261011002</td><td>张三</td><td>B-015</td><td>物品占座无人</td><td>2026-10-11 13:20</td><td><span class="status-tag orange">待处理</span></td><td><button class="btn btn-primary btn-sm">处理</button></td></tr>
+                <tr><td>JB20261011003</td><td>李四</td><td>C-008</td><td>大声喧哗</td><td>2026-10-11 11:45</td><td><span class="status-tag orange">待处理</span></td><td><button class="btn btn-primary btn-sm">处理</button></td></tr>
+                <tr><td>JB20261010005</td><td>王五</td><td>A-012</td><td>饮食异味</td><td>2026-10-10 15:30</td><td><span class="status-tag green">已处理</span></td><td><button class="btn btn-default btn-sm">查看</button></td></tr>
+                <tr><td>JB20261010003</td><td>赵六</td><td>B-020</td><td>非预约人占用</td><td>2026-10-10 10:15</td><td><span class="status-tag green">已处理</span></td><td><button class="btn btn-default btn-sm">查看</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 统计报表 -->
+        <div class="admin-page" id="admin-statistics">
+          <div class="admin-panel">
+            <div class="panel-title">
+              座位使用率统计
+              <div class="panel-actions">
+                <select style="height:28px;border:1px solid #d9d9d9;border-radius:4px;font-size:12px">
+                  <option>本月</option><option>本周</option><option>本季度</option>
+                </select>
+                <button class="btn btn-success btn-sm">📥 导出报表</button>
+              </div>
+            </div>
+            <div class="chart-placeholder" style="height:300px">
+              <div class="chart-bars" style="height:200px">
+                <div class="chart-bar" style="height:45%"><span class="bar-val">45%</span><span class="bar-label">周一</span></div>
+                <div class="chart-bar" style="height:58%"><span class="bar-val">58%</span><span class="bar-label">周二</span></div>
+                <div class="chart-bar" style="height:62%"><span class="bar-val">62%</span><span class="bar-label">周三</span></div>
+                <div class="chart-bar" style="height:70%"><span class="bar-val">70%</span><span class="bar-label">周四</span></div>
+                <div class="chart-bar" style="height:85%"><span class="bar-val">85%</span><span class="bar-label">周五</span></div>
+                <div class="chart-bar" style="height:92%"><span class="bar-val">92%</span><span class="bar-label">周六</span></div>
+                <div class="chart-bar" style="height:88%"><span class="bar-val">88%</span><span class="bar-label">周日</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="admin-panel">
+              <div class="panel-title">学院使用排行榜 TOP10</div>
+              <table class="admin-table">
+                <thead><tr><th>排名</th><th>学院</th><th>预约次数</th><th>占比</th></tr></thead>
+                <tbody>
+                  <tr><td>1</td><td>经济管理学院</td><td>1,256</td><td>18.2%</td></tr>
+                  <tr><td>2</td><td>信息工程学院</td><td>1,108</td><td>16.1%</td></tr>
+                  <tr><td>3</td><td>会计学院</td><td>986</td><td>14.3%</td></tr>
+                  <tr><td>4</td><td>资源学院</td><td>842</td><td>12.2%</td></tr>
+                  <tr><td>5</td><td>土地科学与空间规划学院</td><td>756</td><td>11.0%</td></tr>
+                  <tr><td>6</td><td>宝石与材料学院</td><td>634</td><td>9.2%</td></tr>
+                  <tr><td>7</td><td>艺术学院</td><td>521</td><td>7.6%</td></tr>
+                  <tr><td>8</td><td>法学院</td><td>412</td><td>6.0%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="admin-panel">
+              <div class="panel-title">学生使用排行榜 TOP10</div>
+              <table class="admin-table">
+                <thead><tr><th>排名</th><th>学号</th><th>姓名</th><th>学习时长</th></tr></thead>
+                <tbody>
+                  <tr><td>1</td><td>424141150450</td><td>陈同学</td><td>186小时</td></tr>
+                  <tr><td>2</td><td>424141150432</td><td>林同学</td><td>172小时</td></tr>
+                  <tr><td>3</td><td>424141150418</td><td>黄同学</td><td>165小时</td></tr>
+                  <tr><td>4</td><td>424141150427</td><td>徐同学</td><td>158小时</td></tr>
+                  <tr><td>5</td><td>424141150410</td><td>刘明和</td><td>142小时</td></tr>
+                  <tr><td>6</td><td>424141150445</td><td>马同学</td><td>138小时</td></tr>
+                  <tr><td>7</td><td>424141150436</td><td>朱同学</td><td>125小时</td></tr>
+                  <tr><td>8</td><td>424141150422</td><td>胡同学</td><td>118小时</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="admin-panel">
+            <div class="panel-title">违约情况统计</div>
+            <div class="three-col" style="text-align:center">
+              <div style="padding:20px;background:#fff1f0;border-radius:8px">
+                <div style="font-size:28px;font-weight:700;color:#ff4d4f">43</div>
+                <div style="font-size:13px;color:#8c8c8c;margin-top:4px">本月违约总数</div>
+              </div>
+              <div style="padding:20px;background:#fff7e6;border-radius:8px">
+                <div style="font-size:28px;font-weight:700;color:#faad14">28</div>
+                <div style="font-size:13px;color:#8c8c8c;margin-top:4px">超时未签到</div>
+              </div>
+              <div style="padding:20px;background:#f6ffed;border-radius:8px">
+                <div style="font-size:28px;font-weight:700;color:#52c41a">95.2%</div>
+                <div style="font-size:13px;color:#8c8c8c;margin-top:4px">预约履约率</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 公告管理 -->
+        <div class="admin-page" id="admin-notice">
+          <div class="admin-panel">
+            <div class="panel-title">
+              公告管理
+              <div class="panel-actions">
+                <button class="btn btn-primary btn-sm">+ 发布新公告</button>
+              </div>
+            </div>
+            <div class="notice-item">
+              <div class="notice-content">
+                <div class="notice-title">【重要】国庆假期图书馆开放时间调整通知</div>
+                <div class="notice-meta">发布时间：2026-09-28 10:00 · 发布人：管理员 · 状态：<span class="status-tag green">已发布</span> · 阅读量：1,256</div>
+              </div>
+              <div class="notice-actions">
+                <button class="btn btn-default btn-sm">编辑</button>
+                <button class="btn btn-danger btn-sm">下架</button>
+              </div>
+            </div>
+            <div class="notice-item">
+              <div class="notice-content">
+                <div class="notice-title">三楼自习区A部分座位维修通知</div>
+                <div class="notice-meta">发布时间：2026-10-05 14:30 · 发布人：管理员 · 状态：<span class="status-tag green">已发布</span> · 阅读量：892</div>
+              </div>
+              <div class="notice-actions">
+                <button class="btn btn-default btn-sm">编辑</button>
+                <button class="btn btn-danger btn-sm">下架</button>
+              </div>
+            </div>
+            <div class="notice-item">
+              <div class="notice-content">
+                <div class="notice-title">考试周座位预约规则调整说明</div>
+                <div class="notice-meta">发布时间：2026-10-08 09:00 · 发布人：管理员 · 状态：<span class="status-tag green">已发布</span> · 阅读量：2,108</div>
+              </div>
+              <div class="notice-actions">
+                <button class="btn btn-default btn-sm">编辑</button>
+                <button class="btn btn-danger btn-sm">下架</button>
+              </div>
+            </div>
+            <div class="notice-item">
+              <div class="notice-content">
+                <div class="notice-title">图书馆座位预约系统使用指南</div>
+                <div class="notice-meta">发布时间：2026-09-01 08:00 · 发布人：管理员 · 状态：<span class="status-tag gray">草稿</span> · 阅读量：0</div>
+              </div>
+              <div class="notice-actions">
+                <button class="btn btn-primary btn-sm">发布</button>
+                <button class="btn btn-default btn-sm">编辑</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 系统设置 -->
+        <div class="admin-page" id="admin-settings">
+          <div class="admin-panel">
+            <div class="panel-title">预约规则配置</div>
+            <div class="admin-form">
+              <div class="form-row">
+                <div class="form-item">
+                  <label>开馆时间</label>
+                  <input type="time" value="08:00">
+                </div>
+                <div class="form-item">
+                  <label>闭馆时间</label>
+                  <input type="time" value="22:00">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item">
+                  <label>签到时限（分钟）</label>
+                  <input type="number" value="15">
+                </div>
+                <div class="form-item">
+                  <label>暂离最大时长（分钟）</label>
+                  <input type="number" value="60">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item">
+                  <label>最短取消时限（分钟）</label>
+                  <input type="number" value="15">
+                </div>
+                <div class="form-item">
+                  <label>可提前预约天数</label>
+                  <input type="number" value="3">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item">
+                  <label>违约黑名单阈值（次/学期）</label>
+                  <input type="number" value="3">
+                </div>
+                <div class="form-item">
+                  <label>黑名单冻结时长（天）</label>
+                  <input type="number" value="7">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item">
+                  <label>单次预约最大时长（小时）</label>
+                  <input type="number" value="8">
+                </div>
+                <div class="form-item">
+                  <label>每日预约次数上限</label>
+                  <input type="number" value="3">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-panel">
+            <div class="panel-title">区域管理</div>
+            <table class="admin-table">
+              <thead><tr><th>区域名称</th><th>楼层</th><th>座位数</th><th>区域类型</th><th>开放状态</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr><td>自习区A</td><td>三楼</td><td>60</td><td>普通自习</td><td><span class="status-tag green">开放</span></td><td><button class="btn btn-default btn-sm">编辑</button></td></tr>
+                <tr><td>自习区B</td><td>三楼</td><td>50</td><td>普通自习</td><td><span class="status-tag green">开放</span></td><td><button class="btn btn-default btn-sm">编辑</button></td></tr>
+                <tr><td>电源区</td><td>二楼</td><td>40</td><td>带电源</td><td><span class="status-tag green">开放</span></td><td><button class="btn btn-default btn-sm">编辑</button></td></tr>
+                <tr><td>静音区</td><td>四楼</td><td>45</td><td>静音自习</td><td><span class="status-tag green">开放</span></td><td><button class="btn btn-default btn-sm">编辑</button></td></tr>
+                <tr><td>研讨区</td><td>五楼</td><td>30</td><td>小组讨论</td><td><span class="status-tag orange">部分开放</span></td><td><button class="btn btn-default btn-sm">编辑</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="text-align:right">
+            <button class="btn btn-default">取消</button>
+            <button class="btn btn-primary" onclick="alert('设置已保存')">保存配置</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== 页面路由 ==========
+function showPage(pageId) {
+  document.querySelectorAll('.stu-page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById(pageId);
+  if (page) page.classList.add('active');
+  // 滚动到顶部
+  if (page) page.scrollTop = 0;
+}
+
+function switchAdminPage(el, pageId) {
+  document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  if (el) {
+    document.querySelectorAll('.admin-menu .menu-item').forEach(m => m.classList.remove('active'));
+    el.classList.add('active');
+  }
+  // 更新标题
+  const titles = {
+    'admin-dashboard': '仪表盘',
+    'admin-seat': '座位管理',
+    'admin-reservation': '预约记录',
+    'admin-violation': '违约管理',
+    'admin-report': '举报处理',
+    'admin-statistics': '统计报表',
+    'admin-notice': '公告管理',
+    'admin-settings': '系统设置'
+  };
+  document.getElementById('admin-page-title').textContent = titles[pageId] || '';
+}
+
+// ========== 入口切换 ==========
+function enterStudent() {
+  document.getElementById('entry-page').style.display = 'none';
+  document.getElementById('admin-app').style.display = 'none';
+  document.getElementById('admin-login').style.display = 'none';
+  document.getElementById('student-app').style.display = 'flex';
+  showPage('stu-login');
+}
+
+function enterAdminLogin() {
+  document.getElementById('entry-page').style.display = 'none';
+  document.getElementById('student-app').style.display = 'none';
+  document.getElementById('admin-app').style.display = 'none';
+  document.getElementById('admin-login').style.display = 'flex';
+}
+
+function enterAdmin() {
+  document.getElementById('admin-login').style.display = 'none';
+  document.getElementById('admin-app').style.display = 'block';
+  switchAdminPage(document.querySelector('.admin-menu .menu-item.active'), 'admin-dashboard');
+}
+
+function backToEntry() {
+  document.getElementById('student-app').style.display = 'none';
+  document.getElementById('admin-app').style.display = 'none';
+  document.getElementById('admin-login').style.display = 'none';
+  document.getElementById('entry-page').style.display = 'flex';
+}
+
+// ========== 学生端座位图生成 ==========
+function generateSeatGrid() {
+  const grid = document.getElementById('seat-grid');
+  const statuses = ['free','free','free','reserved','free','using','free','free','using','free','free','reserved','free','free','free','using','free','free','free','maintain','free','free','using','free','reserved','free','free','free','free','using','free','free','free','free','reserved','free'];
+  let html = '';
+  for (let i = 0; i < 36; i++) {
+    const num = 'A-' + String(i+1).padStart(3,'0');
+    const status = statuses[i % statuses.length];
+    const statusText = {free:'',reserved:'预',using:'用',maintain:'修'}[status];
+    html += `<div class="seat ${status}" onclick="selectSeat(this,'${num}')" title="${num}">${statusText || (i+1)}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+let selectedSeat = null;
+function selectSeat(el, num) {
+  if (!el.classList.contains('free')) return;
+  document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSeat = num;
+  document.getElementById('selected-seat-num').textContent = num;
+  document.getElementById('confirm-seat').textContent = num;
+  document.getElementById('reserve-bar').classList.add('show');
+}
+
+function updateSeatMap() {
+  generateSeatGrid();
+  document.getElementById('reserve-bar').classList.remove('show');
+}
+
+// ========== 预约Tab切换 ==========
+function switchReserveTab(el, type) {
+  document.querySelectorAll('.reserve-tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('reserve-ongoing').style.display = type === 'ongoing' ? 'block' : 'none';
+  document.getElementById('reserve-history').style.display = type === 'history' ? 'block' : 'none';
+}
+
+// ========== 弹窗 ==========
+function showCheckinModal() { document.getElementById('checkin-modal').classList.add('show'); }
+function showCancelModal() { document.getElementById('cancel-modal').classList.add('show'); }
+function showReserveSuccess() { document.getElementById('reserve-success-modal').classList.add('show'); }
+function showAppealSuccess() { document.getElementById('appeal-success-modal').classList.add('show'); }
+function showReportSuccess() { document.getElementById('report-success-modal').classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ========== 管理员端座位图生成 ==========
+function generateAdminSeatGrid() {
+  const grid = document.getElementById('admin-seat-grid');
+  const statuses = ['free','using','free','reserved','free','using','free','free','using','free','free','reserved','free','free','using','free','free','maintain','free','using','free','reserved','free','free','using','free','free','free','reserved','free','free','using','free','free','reserved','free','free','using','free','free'];
+  let html = '';
+  for (let i = 0; i < 40; i++) {
+    const num = 'A-' + String(i+1).padStart(3,'0');
+    const status = statuses[i % statuses.length];
+    html += `<div class="seat-admin-cell ${status}" title="${num}" onclick="alert('座位 ${num}\\n状态：${ {free:'空闲',using:'使用中',reserved:'已预约',maintain:'维修中'}[status] }')">${i+1}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// 初始化
+window.onload = function() {
+  generateSeatGrid();
+  generateAdminSeatGrid();
+};
+</script>
+</body>
+</html>
